@@ -52,9 +52,7 @@ def should_check_file(filename):
         return False
     if filename.startswith('Base/'):
         return False
-    if filename == 'Kernel/FileSystem/Ext2FS/Definitions.h':
-        return False
-    return True
+    return filename != 'Kernel/FileSystem/Ext2FS/Definitions.h'
 
 
 def find_files_here_or_argv():
@@ -76,9 +74,11 @@ def run():
     for filename in find_files_here_or_argv():
         with open(filename, "r") as f:
             file_content = f.read()
-        if not any(filename.startswith(forbidden_prefix) for forbidden_prefix in LICENSE_HEADER_CHECK_EXCLUDES):
-            if not GOOD_LICENSE_HEADER_PATTERN.search(file_content):
-                errors_license.append(filename)
+        if not any(
+            filename.startswith(forbidden_prefix)
+            for forbidden_prefix in LICENSE_HEADER_CHECK_EXCLUDES
+        ) and not GOOD_LICENSE_HEADER_PATTERN.search(file_content):
+            errors_license.append(filename)
         if filename.endswith('.h'):
             if any(filename.startswith(forbidden_prefix) for forbidden_prefix in PRAGMA_ONCE_CHECK_EXCLUDES):
                 # File was excluded
@@ -92,9 +92,11 @@ def run():
             else:
                 # Bad, the '#pragma once' is missing completely.
                 errors_pragma_once_missing.append(filename)
-        if not any(filename.startswith(forbidden_prefix) for forbidden_prefix in LIBC_CHECK_EXCLUDES):
-            if BAD_INCLUDE_LIBC.search(file_content):
-                errors_include_libc.append(filename)
+        if not any(
+            filename.startswith(forbidden_prefix)
+            for forbidden_prefix in LIBC_CHECK_EXCLUDES
+        ) and BAD_INCLUDE_LIBC.search(file_content):
+            errors_include_libc.append(filename)
 
     if errors_license:
         print("Files with bad licenses:", " ".join(errors_license))
@@ -110,5 +112,5 @@ def run():
 
 
 if __name__ == '__main__':
-    os.chdir(os.path.dirname(__file__) + "/..")
+    os.chdir(f"{os.path.dirname(__file__)}/..")
     run()
